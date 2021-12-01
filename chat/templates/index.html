@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        body {
+            background: url('https://i.pinimg.com/736x/8c/98/99/8c98994518b575bfd8c949e91d20548b.jpg');
+            background-repeat: no-repeat;
+        }
+        .send-container {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: -2px 0px 10px rgba(0,0,0,0.4);
+            background: #fff;
+            padding: 0 !important;
+        }
+        .send-container input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding-left: 20px;
+        }
+        .send-container input:focus {
+            outline: none;
+        }
+        .list-group-item {
+            border-radius: 20px !important;
+            box-shadow: 5px 2px 10px rgba(0,0,0,0.4);
+        }
+        .c-not-user {
+            background: #f5f5f5 !important;
+            border-top-left-radius: 0px !important;
+        }
+        .c-user {
+            border-bottom-right-radius: 0px !important;
+        }
+        .btn {
+            border-radius: 0 !important;
+        }
+        .time-msg {
+            font-size: 8px;
+        }
+        small {
+            font-size: 10px;
+        }
+    </style>
+    <title>Hello, world!</title>
+  </head>
+  <body>
+
+    <div class="pt-4">
+        <div class="container">
+            <ul class="list-group" id="list">
+    
+            </ul>
+        </div>
+    </div>
+
+    <div class="position-fixed send-container mt-4">
+        <input type="text" id="messageText">
+        <button class="btn btn-info ms-2" id="sendButton">Enviar</button>
+    </div>
+    
+    <input type="hidden" id="currentUser" value="{{user.username}}">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        var socket = new WebSocket('ws://localhost:8000/ws/chat/chatum/');
+
+        socket.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            const currentUser = $('#currentUser').val()
+            $('#list').append(`
+                <li class="mb-2 list-group-item ${currentUser == data.user ? 'text-white bg-primary c-user' : 'c-not-user'}">
+                    <div class="d-flex flex-column">
+                        ${data.message}
+                        <small>${data.user}</small>
+                    </div>
+                    <div class="float-end time-msg">
+                        ${new Intl.DateTimeFormat('pt-BR', {
+                            dateStyle: 'short',
+                            timeStyle: 'short'
+                        }).format(new Date(data.currentTime))}
+                    </div>
+                </li>
+            `)
+            document.querySelector('#text').innerText = data.message
+        }
+
+        $('#sendButton').on('click', function() {
+            sendMessage()
+        })
+        $('#messageText').on('keyup', function(e) {
+            if (e.keyCode === 13) {
+                sendMessage()
+            }
+        })
+
+        function sendMessage() {
+            const messageText = $('#messageText').val()
+
+            if (messageText) {
+                // const username = $('#currentUser').val()
+                const message = { message: messageText }
+                socket.send(JSON.stringify(message))
+
+                $('#messageText').val('')
+            }            
+        }
+
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  </body>
+</html>
